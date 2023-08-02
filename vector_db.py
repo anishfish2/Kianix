@@ -4,10 +4,8 @@ import os
 import sys
 import nltk
 nltk.download('punkt')
-import numpy as np
 from sent2vec.vectorizer import Vectorizer
 
-#Function to ensure index has been fully initalized
 def wait_on_index(serverName):
   ready = False
 
@@ -26,13 +24,13 @@ def vectorize(sentences):
    vectors = vectorizer.vectors
    return vectors
 
-def insert_memories(sentences):
+def insert_memories(sentences, index):
    if len(sentences) > 0:
         vectorized_sentences = vectorize(sentences)
         formated_sentences = [(sentences[i], vectorized_sentences[i].tolist()) for i in range(len(vectorized_sentences))]
         index.upsert(formated_sentences)
 
-def query_memories(questions):
+def query_memories(questions, index, num_memories):
     vectorized_questions = vectorize(questions)
     answers = []
     for i in range(len(questions)):
@@ -40,20 +38,18 @@ def query_memories(questions):
 
         answers.append("A: " + index.query(
             vector=vectorized_questions[i].tolist(),
-            top_k=1,
+            top_k=num_memories,
             include_values=True
         ).matches[0].id)
     return answers
 
-if __name__ == '__main__':
-
-    serverName = sys.argv[1]
-
-    def read_yaml(file_path):
+def read_yaml(file_path):
         with open(file_path, "r") as f:
             return yaml.safe_load(f)
 
 
+def test_functions(serverName):
+    
     apiInfo = read_yaml("config.yaml")
 
     environment = apiInfo["API"]["ENVIRONMENT"]
@@ -76,10 +72,16 @@ if __name__ == '__main__':
     print('Enter Memory:')
     sentences = [i for i in input().split(".") if len(i) > 0]
 
-    insert_memories(sentences)
+    insert_memories(sentences, index)
 
     wait_on_index(serverName)
 
     questions = [i for i in input('What would you like to ask?').split("?") if len(i) > 0]
 
-    print(query_memories(questions))
+    print(query_memories(questions, index, 1))
+
+if __name__ == '__main__':
+    if len(sys.argv > 1):
+        serverName = sys.argv[1]
+
+        test_functions(serverName)

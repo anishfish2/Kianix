@@ -1,15 +1,7 @@
 import pinecone
-import sys
-import time
-import yaml
+from vector_db import read_yaml
 
-if __name__ == '__main__':
-
-    def read_yaml(file_path):
-        with open(file_path, "r") as f:
-            return yaml.safe_load(f)
-
-
+def delete_indexes():
     apiInfo = read_yaml("config.yaml")
 
     environment = apiInfo["API"]["ENVIRONMENT"]
@@ -20,6 +12,8 @@ if __name__ == '__main__':
     pinecone.init(api_key=api_key, environment=environment)
 
     for i in pinecone.list_indexes():
-        print("Deleting", i)
         pinecone.delete_index(i)
 
+if __name__ == '__main__':
+    delete_indexes()
+    print("All indexes deleted sucessfully!")
