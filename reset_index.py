@@ -2,18 +2,14 @@ import pinecone
 import sys
 import yaml
 from create_index import init_index
+from dotenv import load_dotenv
+import os
 
 def resetIndex(serverName):
+    load_dotenv()
 
-    def read_yaml(file_path):
-        with open(file_path, "r") as f:
-            return yaml.safe_load(f)
-
-
-    apiInfo = read_yaml("config.yaml")
-
-    environment = apiInfo["API"]["ENVIRONMENT"]
-    api_key = apiInfo["API"]["KEY"]
+    environment = os.getenv("ENVIRONMENT")
+    api_key = os.getenv("KEY")
 
 
     # Create pinecone index and load

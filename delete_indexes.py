@@ -1,11 +1,13 @@
 import pinecone
 from vector_db import read_yaml
+from dotenv import load_dotenv
+import os
 
 def delete_indexes():
-    apiInfo = read_yaml("config.yaml")
+    load_dotenv()
 
-    environment = apiInfo["API"]["ENVIRONMENT"]
-    api_key = apiInfo["API"]["KEY"]
+    environment = os.getenv("ENVIRONMENT")
+    api_key = os.getenv("KEY")
 
 
     # Create pinecone index and load

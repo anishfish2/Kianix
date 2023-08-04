@@ -1,15 +1,17 @@
 import pinecone
 import sys
 from vector_db import wait_on_index, read_yaml
-        
+from dotenv import load_dotenv
+import os
+
 def init_index(serverName, vector_dim):
     
     print('Creating Index', serverName)
     
-    apiInfo = read_yaml("config.yaml")
+    load_dotenv()
 
-    environment = apiInfo["API"]["ENVIRONMENT"]
-    api_key = apiInfo["API"]["KEY"]
+    environment = os.getenv("ENVIRONMENT")
+    api_key = os.getenv("KEY")
 
     # Create pinecone index and load
     pinecone.init(api_key=api_key, environment=environment)

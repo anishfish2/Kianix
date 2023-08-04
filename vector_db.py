@@ -5,6 +5,8 @@ import sys
 import nltk
 nltk.download('punkt')
 from sent2vec.vectorizer import Vectorizer
+from dotenv import load_dotenv
+import os
 
 def wait_on_index(serverName):
   ready = False
@@ -34,9 +36,7 @@ def query_memories(questions, index, num_memories):
     vectorized_questions = vectorize(questions)
     answers = []
     for i in range(len(questions)):
-        print("Q:", questions[i])
-
-        answers.append("A: " + index.query(
+        answers.append(index.query(
             vector=vectorized_questions[i].tolist(),
             top_k=num_memories,
             include_values=True
@@ -49,11 +49,10 @@ def read_yaml(file_path):
 
 
 def test_functions(serverName):
-    
-    apiInfo = read_yaml("config.yaml")
+    load_dotenv()
 
-    environment = apiInfo["API"]["ENVIRONMENT"]
-    api_key = apiInfo["API"]["KEY"]
+    environment = os.getenv("ENVIRONMENT")
+    api_key = os.getenv("KEY")
 
 
     # Create pinecone index and load

@@ -1,13 +1,14 @@
 import pinecone
 import sys
 from vector_db import insert_memories, read_yaml
+from dotenv import load_dotenv
+import os
 
 def insert_memory(serverName, memories):
+    load_dotenv()
 
-    apiInfo = read_yaml("config.yaml")
-
-    environment = apiInfo["API"]["ENVIRONMENT"]
-    api_key = apiInfo["API"]["KEY"]
+    environment = os.getenv("ENVIRONMENT")
+    api_key = os.getenv("KEY")
 
     pinecone.init(api_key=api_key, environment=environment)
 
