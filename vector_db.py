@@ -20,6 +20,7 @@ def wait_on_index(serverName):
     except pinecone.core.client.exceptions.NotFoundException:
       pass
 
+#Take in a list of sentences -> Return a list of vectors w dim 768
 def vectorize(sentences):
    vectorizer = Vectorizer()
    vectorizer.run(sentences)
