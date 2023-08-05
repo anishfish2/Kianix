@@ -106,6 +106,63 @@ def questionFromChat(text):
 
     print(ans)
 
+def generateConversation():
+    keynotes = read_file("keynotes.txt")
+    load_dotenv()
+    openai.api_key = os.getenv('OPENAI_API_KEY')
+
+    prompt = "You are a vtuber with these characteristics and backstory: " + ' '.join(keynotes) + ". Generate some random thoughts that anyone could have while going about their day. It can be random."
+        
+
+    response = openai.ChatCompletion.create(
+    model="gpt-4",
+    messages= [{"role": "user", "content": prompt}]
+    )
+
+    #Probably need to save the questions
+
+    ans = response['choices'][0]['message']['content']
+
+    print(ans)
+
+def generateJoke():
+    keynotes = read_file("keynotes.txt")
+    load_dotenv()
+    openai.api_key = os.getenv('OPENAI_API_KEY')
+
+    prompt = "You are a vtuber with these characteristics and backstory: " + ' '.join(keynotes) + ". Generate a random joke."
+        
+
+    response = openai.ChatCompletion.create(
+    model="gpt-4",
+    messages= [{"role": "user", "content": prompt}]
+    )
+
+    #Probably need to save the questions
+
+    ans = response['choices'][0]['message']['content']
+
+    print(ans)
+
+def generateSelfTalk():
+    keynotes = read_file("keynotes.txt")
+    backstory = read_file("backstory.txt")
+    load_dotenv()
+    openai.api_key = os.getenv('OPENAI_API_KEY')
+
+    prompt = "You are a vtuber with these characteristics: " + ' '.join(keynotes) + "This is your backstory: " + ' '.join(backstory) + ". Talk about yourself for a little and reminisce on the past."
+        
+
+    response = openai.ChatCompletion.create(
+    model="gpt-4",
+    messages= [{"role": "user", "content": prompt}]
+    )
+
+    #Probably need to save the questions
+
+    ans = response['choices'][0]['message']['content']
+
+    print(ans)
 
 def emote():
     print("Smile")
@@ -115,7 +172,7 @@ def main():
     askedQuestions = []
     textFromChat = "Can you soap my mouth Flushed"
     while True:
-        decision = random.randint(0, 2)
+        decision = random.randint(0, 5)
         if decision == 0:
             print("Chat question:")
             respondToChat(1)
@@ -125,6 +182,13 @@ def main():
         elif decision == 2:
             print("User said this: " +  textFromChat)
             questionFromChat(textFromChat)
+        elif decision == 3:
+            generateConversation()
+        elif decision == 4:
+            generateJoke()
+        elif decision == 5:
+            generateSelfTalk()
+
 
 
 if __name__ == '__main__':
