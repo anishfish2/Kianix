@@ -16,7 +16,7 @@ def init_index(serverName, vector_dim):
     # Create pinecone index and load
     pinecone.init(api_key=api_key, environment=environment)
 
-    pinecone.create_index(serverName, dimension=vector_dim, metric="euclidean")
+    pinecone.create_index(serverName, dimension=vector_dim, metric="cosine")
 
     print("Indexes after Creation:", pinecone.list_indexes())
 

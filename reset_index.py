@@ -17,7 +17,7 @@ def resetIndex(serverName):
 
     pinecone.delete_index(serverName)
 
-    init_index(serverName, 768)
+    init_index(serverName, 1024)
 
 if __name__ == '__main__':
     if len(sys.argv) > 1:

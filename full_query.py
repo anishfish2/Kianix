@@ -29,8 +29,9 @@ if __name__ == '__main__':
         serverName = sys.argv[1]
 
         if len(sys.argv) > 2:
-            memories = [i for i in sys.argv[2].split("?") if len(i) > 0]
-
+            #memories = [i for i in sys.argv[2].split("?") if len(i) > 0]
+            memories = [sys.argv[2]]
+            
             if len(sys.argv) > 3:
                 top_k = int(sys.argv[3])
 

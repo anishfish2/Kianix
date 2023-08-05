@@ -3,26 +3,129 @@ from insert_memory import insert_memory
 import openai
 from dotenv import load_dotenv
 import os
+import yaml
+import random
+import time
 
-load_dotenv()
 
-openai.api_key = os.getenv('OPENAI_API_KEY')
+def read_file(path_to_file):
+    with open(path_to_file) as f:
+        contents = ' '.join(f.readlines())
+        return contents
+    
+def read_yaml(parameter, var):
+    with open("config.yaml") as f:
+        cfg = yaml.load(f, Loader=yaml.FullLoader)
+        return(cfg[parameter][var])
+    
+def respondToChat(numResponses):
 
-backstory = "Growing up, I always had a fascination with technology and gaming. I spent countless hours in front of my computer, exploring virtual worlds and connecting with people from all walks of life. As I grew older, I realized that the online realm had become more than just a hobby; it had become my passion. One day, I stumbled upon a video about VTubers. Their ability to entertain and build communities through their virtual personas amazed me. It struck me as the perfect way to combine my love for technology and gaming with my desire to connect with people. I was determined to become a VTuber myself. However, the journey to creating my virtual identity was not easy. I faced numerous challenges and doubts. But with the support of my friends and family, I persevered. I spent hours learning about 3D modeling and animation, honing my voice acting skills, and crafting the perfect avatar that represented the true essence of who I am. Finally, the day came when I unveiled my virtual self to the world on Twitch. Nervous and excited, I hit the 'Go Live' button for the very first time. As I started interacting with my viewers, I felt an overwhelming sense of joy and fulfillment. The connection I forged with my audience was unlike anything I had experienced before."
+    keynotes = read_file("keynotes.txt")
 
-initial_memory = "Hey there! I'm Kianix, a Twitch VTuber. I was once just an ordinary person with a passion for technology and gaming. After discovering VTubers, I knew it was my calling. With determination and support, I created my virtual identity. As Kianix, I connect with my viewers through gaming streams and cherish the community we've built together. Being a VTuber has been a fulfilling journey, and I'm excited to see what the future holds!"
+    load_dotenv()
 
-insert_memory("kianix", [i for i in initial_memory.split(".") if len(i) > 0])
+    openai.api_key = os.getenv('OPENAI_API_KEY')
 
-question = "What is your opinion on games?"
+    curr = 0
+    prevs = []
+    while curr != numResponses:
+        question = input()
 
-memory = full_query("kianix", [i for i in question.split("?") if len(i) > 0], 1)
+        query = full_query("kianix", [question], 1)
+        memory = query[0]
+        score = query[1]
+        max = random.randint(11, 100)
+        min = random.randint(0, 10)
+        #TO DO add a check if memory query value threshold is high, otherwise perhaps dont use the memory as it's not relevant and just make something up
+        if score > .75:
+            if len(prevs) == 0:
+                prompt = "Write a " + str(min) + "-" + str(max) + " word response as if you were this person:" + ' '.join(keynotes) + " Your Twitch chat just asked you this question: " + question + ". You have this memory that helps to answer the question: " + ' '.join(memory) + ". Give a short response to the question. If the memory doesn't help, ignore it. Involve the question in your response. No emojis. Only ASCII characters."
+            else:
+                prompt = "Write a " + str(min) + "-" + str(max) + " word response as if you were this person:" + ' '.join(keynotes) + " Your Twitch chat just asked you this question: " + question + ". You have this memory that helps to answer the question: " + ' '.join(memory) + ". Give a short response to the question. If the memory doesn't help, ignore it. Involve the question in your response. These are your previous statements: " + ' '.join(prevs) + ". Make sure your answer is different and not repetitive from your last statements. No emojis. Only ASCII characters."
+        else:
+            if len(prevs) == 0:
+                prompt = "Write a " + str(min) + "-" + str(max) + " word response as if you were this person:" + ' '.join(keynotes) + " Your Twitch chat just asked you this question: " + question + "Give a short response to the question. Involve the question in your response. No emojis. Only ASCII characters."
+            else:
+                prompt = "Write a " + str(min) + "-" + str(max) + " word response as if you were this person:" + ' '.join(keynotes) + " Your Twitch chat just asked you this question: " + question + " Give a short response to the question. Involve the question in your response. If the memory doesn't help, ignore it. These are your previous statements: " + ' '.join(prevs) + ". Make sure your answer is different and not repetitive from your last statements. No emojis. Only ASCII characters."
+        
 
-prompt = "You speak like a cute girl who loves games. You are a person with this backstory:" + backstory + ". Someone just asked you this question: " + question + ". You have this related sentence from your memory: " + ' '.join(memory) + " Give a reqponse to the question."
+        response = openai.ChatCompletion.create(
+        model="gpt-4",
+        messages= [{"role": "user", "content": prompt}]
+        )
 
-response = openai.ChatCompletion.create(
-  model="gpt-4",
-  messages= [{"role": "user", "content": prompt}]
-)
 
-print(response['choices'][0]['message']['content'])
+
+        ans = response['choices'][0]['message']['content']
+        save = "Question: " + question + " Response: " + ans
+        
+        if len(save) < 450:
+            insert_memory("kianix", [save])
+
+        print(ans)
+        
+        prevs.append(ans)
+        curr += 1
+
+def questionChat(questions):
+    #Maybe also add types of questions like, questions about self, questions about chat, questions about streamers, questions about news
+    keynotes = read_file("keynotes.txt")
+    load_dotenv()
+    openai.api_key = os.getenv('OPENAI_API_KEY')
+
+    prompt = "You are a vtuber with these characteristics and backstory: " + ' '.join(keynotes) + ". You've already asked these questions: " + '?'.join(questions) + "Write a new unrelated question that is not about gaming you have not asked yet to the chat that you are streaming to."
+        
+
+    response = openai.ChatCompletion.create(
+    model="gpt-4",
+    messages= [{"role": "user", "content": prompt}]
+    )
+
+    #Probably need to save the questions
+
+    ans = response['choices'][0]['message']['content']
+
+    print(ans)
+    
+def questionFromChat(text):
+    keynotes = read_file("keynotes.txt")
+    load_dotenv()
+    openai.api_key = os.getenv('OPENAI_API_KEY')
+
+    prompt = "You are a vtuber with these characteristics and backstory: " + ' '.join(keynotes) + ". Someone wrote this in chat. It may contain Twitch emotes: " + text + "Write up a response, comment, question, or sarcastic quip about it. No emojis. ASCII characters only."
+        
+
+    response = openai.ChatCompletion.create(
+    model="gpt-4",
+    messages= [{"role": "user", "content": prompt}]
+    )
+
+    #Probably need to save the questions
+
+    ans = response['choices'][0]['message']['content']
+
+    print(ans)
+
+
+def emote():
+    print("Smile")
+
+
+def main():
+    askedQuestions = []
+    textFromChat = "Can you soap my mouth Flushed"
+    while True:
+        decision = random.randint(0, 2)
+        if decision == 0:
+            print("Chat question:")
+            respondToChat(1)
+        elif decision == 1:
+            questionChat(askedQuestions)
+            time.sleep(3)
+        elif decision == 2:
+            print("User said this: " +  textFromChat)
+            questionFromChat(textFromChat)
+
+
+if __name__ == '__main__':
+    main()
