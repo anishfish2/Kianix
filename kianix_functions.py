@@ -5,7 +5,8 @@ from dotenv import load_dotenv
 import os
 import yaml
 import random
-import time
+from texttospeech import *
+from live2D import *
 
 def read_file(path_to_file):
     with open(path_to_file) as f:
@@ -62,7 +63,8 @@ def respondToChat(numResponses):
             insert_memory("kianix", [save])
 
         print(ans)
-        
+        playTTS(ans)
+
         prevs.append(ans)
         curr += 1
 
@@ -85,7 +87,8 @@ def questionChat(questions):
     ans = response['choices'][0]['message']['content']
 
     print(ans)
-    
+    playTTS(ans)
+
 def questionFromChat(text):
     keynotes = read_file("keynotes.txt")
     load_dotenv()
@@ -104,6 +107,7 @@ def questionFromChat(text):
     ans = response['choices'][0]['message']['content']
 
     print(ans)
+    playTTS(ans)
 
 def generateConversation():
     keynotes = read_file("keynotes.txt")
@@ -123,6 +127,7 @@ def generateConversation():
     ans = response['choices'][0]['message']['content']
 
     print(ans)
+    playTTS(ans)
 
 def generateJoke():
     keynotes = read_file("keynotes.txt")
@@ -142,6 +147,7 @@ def generateJoke():
     ans = response['choices'][0]['message']['content']
 
     print(ans)
+    playTTS(ans)
 
 def generateSelfTalk():
     keynotes = read_file("keynotes.txt")
@@ -162,7 +168,28 @@ def generateSelfTalk():
     ans = response['choices'][0]['message']['content']
 
     print(ans)
+    playTTS(ans)
 
 def emote():
     print("Smile")
+
+def sayGoodbye():
+    keynotes = read_file("keynotes.txt")
+    load_dotenv()
+    openai.api_key = os.getenv('OPENAI_API_KEY')
+
+    prompt = "You are a vtuber with these characteristics and backstory: " + ' '.join(keynotes) + ". You are saying goodbye to your stream. Generate a goodbye and thank them for watching the stream."
+        
+
+    response = openai.ChatCompletion.create(
+    model="gpt-4",
+    messages= [{"role": "user", "content": prompt}]
+    )
+
+    #Probably need to save the questions
+
+    ans = response['choices'][0]['message']['content']
+
+    print(ans)
+    playTTS(ans)
 

@@ -1,9 +1,55 @@
-from sentence_transformers import SentenceTransformer
-from sentence_transformers.util import cos_sim
+import soundfile as sf
+import numpy as np
+import sounddevice as sd
+import pyttsx3
+import sys
 
-sentences = ['Hmmm, my favorite Twitch streamer? Well, thats a tough one because there are so many talented gamers out there, right? But Id have to say Im quite partial to Pokimane. Shes got that ideal blend of skill and entertainment, and she always keep things light and fun! Just like when in a tight spot in a game, I can always count on her content to lift my spirits - kind of like when Jigglypuff uses her lullaby power! Tee-hee!',
-'Well, it simply has to be Jigglypuff! Her lullaby power is so adorably enchanting, it just makes your heart do a little flip. Not forgetting that its especially handy in a tight spot during a game, right', "Who is your favorite twitch streamer"]
+def change_pitch(data, semitones):
+    # Calculate the pitch shift factor
+    pitch_shift = 2 ** (semitones / 12.0)
 
-model = SentenceTransformer('thenlper/gte-large')
-embeddings = model.encode(sentences)
+    # Apply pitch shift using resampling
+    shifted_data = np.interp(
+        np.arange(0, len(data), pitch_shift),
+        np.arange(0, len(data)),
+        data
+    )
 
+    return shifted_data
+
+def generate_audio_from_text(text, voice_name):
+    # Initialize the TTS engine
+    engine = pyttsx3.init()
+
+    # Set the desired voice
+    voices = engine.getProperty('voices')
+    for voice in voices:
+        if voice.name == voice_name:
+            engine.setProperty('voice', voice.id)
+            break
+
+    # Generate audio from text
+    engine.save_to_file(text, 'temp.wav')
+    engine.runAndWait()
+
+def playTTS(input_text):
+    # Number of semitones to shift the pitch
+    semitones_to_shift = 2  # You can adjust this value as needed
+
+    # Voice name (you may need to find the appropriate voice name for your system)
+    desired_voice_name = "Microsoft Zira Desktop - English (United States)"
+
+    # Generate audio from text using the desired voice
+    generate_audio_from_text(input_text, desired_voice_name)
+
+    # Load the generated audio using soundfile
+    generated_audio, sample_rate = sf.read('temp.wav')
+
+    # Apply pitch modification
+    modified_audio = change_pitch(generated_audio, semitones_to_shift)
+
+    # Play the modified audio using sounddevice
+    sd.play(modified_audio, sample_rate)
+    sd.wait()
+
+    print("Pitch modification and audio playback complete.")
