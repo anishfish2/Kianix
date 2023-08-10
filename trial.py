@@ -1,55 +1,41 @@
-import soundfile as sf
-import numpy as np
-import sounddevice as sd
-import pyttsx3
-import sys
+from full_query import full_query
+from insert_memory import insert_memory
+import openai
+from dotenv import load_dotenv
+import os
+import yaml
+from texttospeech import *
+from live2D import *
+import random
+def read_file(path_to_file):
+    with open(path_to_file) as f:
+        contents = ' '.join(f.readlines())
+        return contents
+keynotes = read_file("keynotes.txt")
+functions = read_file("functions.txt")
+load_dotenv()
+openai.api_key = os.getenv('OPENAI_API_KEY')
 
-def change_pitch(data, semitones):
-    # Calculate the pitch shift factor
-    pitch_shift = 2 ** (semitones / 12.0)
+while True:
+    prompt = "You are a vtuber with these characteristics and backstory: " + ' '.join(keynotes) + ". Generate a random thought that anyone could have while going about their day. No swearing or controversy. It can be random. After your response, categorize yourself as either curious, thinking, uneasy, shocked, pleased, surprised, happy, amazed, or sorrow and write it as only one of those words after a new line no punctuation. You have this set of abilities that are encoded as parameters: " + ' '.join(functions) + ". If you call a function, you will perform the action that it describes. Each function is separated from its description by a ':' and separated from other functions by a ';' After categorizing your response, simply call one function using its name and '()' and write it after a new line no punctuation. "
+        
 
-    # Apply pitch shift using resampling
-    shifted_data = np.interp(
-        np.arange(0, len(data), pitch_shift),
-        np.arange(0, len(data)),
-        data
+    response = openai.ChatCompletion.create(
+    model="gpt-4",
+    messages= [{"role": "user", "content": prompt}]
     )
 
-    return shifted_data
+    #Probably need to save the questions
 
-def generate_audio_from_text(text, voice_name):
-    # Initialize the TTS engine
-    engine = pyttsx3.init()
 
-    # Set the desired voice
-    voices = engine.getProperty('voices')
-    for voice in voices:
-        if voice.name == voice_name:
-            engine.setProperty('voice', voice.id)
-            break
-
-    # Generate audio from text
-    engine.save_to_file(text, 'temp.wav')
-    engine.runAndWait()
-
-def playTTS(input_text):
-    # Number of semitones to shift the pitch
-    semitones_to_shift = 2  # You can adjust this value as needed
-
-    # Voice name (you may need to find the appropriate voice name for your system)
-    desired_voice_name = "Microsoft Zira Desktop - English (United States)"
-
-    # Generate audio from text using the desired voice
-    generate_audio_from_text(input_text, desired_voice_name)
-
-    # Load the generated audio using soundfile
-    generated_audio, sample_rate = sf.read('temp.wav')
-
-    # Apply pitch modification
-    modified_audio = change_pitch(generated_audio, semitones_to_shift)
-
-    # Play the modified audio using sounddevice
-    sd.play(modified_audio, sample_rate)
-    sd.wait()
-
-    print("Pitch modification and audio playback complete.")
+    total = response['choices'][0]['message']['content']
+    response_text = total.split("\n")[0]
+    emotion = total.split("\n")[-3].strip().lower()
+    function = total.split("\n")[-1].strip().lower()
+    ans = response_text
+    if emotion in ["curious", "thinking", "uneasy", "shocked", "pleased", "surprised", "happy", "amazed", "sorrow"]:
+        send_animation_trigger(emotion)
+    if function in ["stars()","hearts()", "cry()", "turnoffsigil()", "default()", "blureyes()", "powerstate()", "noflowers()"]:
+        send_expression(function)
+    rate = 125 + int(len(ans) * .01)
+    playTTS(ans, rate)

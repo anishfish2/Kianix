@@ -17,7 +17,7 @@ def change_pitch(data, semitones):
     return shifted_data
 
 def generate_audio_from_text(text, voice_name, rate):
-    # Initialize the TTS engine
+    #Initialize the TTS engine
     engine = pyttsx3.init()
 
     # Set the desired voice
@@ -34,7 +34,7 @@ def generate_audio_from_text(text, voice_name, rate):
     engine.save_to_file(text, 'temp.wav')
     engine.runAndWait()
 
-def playTTS(input_text):
+def playTTS(input_text, rate):
     # Number of semitones to shift the pitch
     semitones_to_shift = 2  # You can adjust this value as needed
 
@@ -42,7 +42,7 @@ def playTTS(input_text):
     desired_voice_name = "Microsoft Zira Desktop - English (United States)"
 
     # Speaking rate (words per minute)
-    desired_speaking_rate = 125  # Adjust the rate as needed
+    desired_speaking_rate = rate  # Adjust the rate as needed
 
     # Generate audio from text using the desired voice and speaking rate
     generate_audio_from_text(input_text, desired_voice_name, desired_speaking_rate)

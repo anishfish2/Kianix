@@ -4,10 +4,11 @@ import openai
 from dotenv import load_dotenv
 import os
 import yaml
-import random
 from texttospeech import *
 from live2D import *
+import random
 
+#To do add a current action thing so that in the future u can add a comment on action function
 def read_file(path_to_file):
     with open(path_to_file) as f:
         contents = ' '.join(f.readlines())
@@ -17,64 +18,73 @@ def read_yaml(parameter, var):
     with open("config.yaml") as f:
         cfg = yaml.load(f, Loader=yaml.FullLoader)
         return(cfg[parameter][var])
+
     
-def respondToChat(numResponses):
+def respondToChat():
 
     keynotes = read_file("keynotes.txt")
-
+    functions = read_file("functions.txt")
     load_dotenv()
 
     openai.api_key = os.getenv('OPENAI_API_KEY')
 
     curr = 0
     prevs = []
-    while curr != numResponses:
-        question = input()
 
-        query = full_query("kianix", [question], 1)
-        memory = query[0]
-        score = query[1]
-        max = random.randint(11, 100)
-        min = random.randint(0, 10)
-        #TO DO add a check if memory query value threshold is high, otherwise perhaps dont use the memory as it's not relevant and just make something up
-        if score > .75:
-            if len(prevs) == 0:
-                prompt = "Write a " + str(min) + "-" + str(max) + " word response as if you were this person:" + ' '.join(keynotes) + " Your Twitch chat just asked you this question: " + question + ". You have this memory that helps to answer the question: " + ' '.join(memory) + ". Give a short response to the question. If the memory doesn't help, ignore it. Involve the question in your response. No emojis. Only ASCII characters."
-            else:
-                prompt = "Write a " + str(min) + "-" + str(max) + " word response as if you were this person:" + ' '.join(keynotes) + " Your Twitch chat just asked you this question: " + question + ". You have this memory that helps to answer the question: " + ' '.join(memory) + ". Give a short response to the question. If the memory doesn't help, ignore it. Involve the question in your response. These are your previous statements: " + ' '.join(prevs) + ". Make sure your answer is different and not repetitive from your last statements. No emojis. Only ASCII characters."
+    question = input()
+
+    query = full_query("kianix", [question], 1)
+    memory = query[0]
+    score = query[1]
+    max = random.randint(11, 100)
+    min = random.randint(0, 10)
+    #TO DO add a check if memory query value threshold is high, otherwise perhaps dont use the memory as it's not relevant and just make something up
+    if score > .75:
+        if len(prevs) == 0:
+            prompt = "Write a " + str(min) + "-" + str(max) + " word response as if you were this person:" + ' '.join(keynotes) + " Your Twitch chat just said this: " + question + ". You have this memory that helps to answer: " + ' '.join(memory) + ". Give a short response. If the memory doesn't help, ignore it. Involve their statement in your response. No emojis. Only ASCII characters. No swearing or controversy. After your response, categorize yourself as either curious, thinking, uneasy, shocked, pleased, surprised, happy, amazed, or sorrow and write it as only one of those words after a new line no punctuation. You have this set of abilities that are encoded as parameters: " + ' '.join(functions) + ". If you call a function, you will perform the action that it describes. Each function is separated from its description by a ':' and separated from other functions by a ';' After categorizing your response, simply call one function using its name and '()' and write it after a new line no punctuation. "
         else:
-            if len(prevs) == 0:
-                prompt = "Write a " + str(min) + "-" + str(max) + " word response as if you were this person:" + ' '.join(keynotes) + " Your Twitch chat just asked you this question: " + question + "Give a short response to the question. Involve the question in your response. No emojis. Only ASCII characters."
-            else:
-                prompt = "Write a " + str(min) + "-" + str(max) + " word response as if you were this person:" + ' '.join(keynotes) + " Your Twitch chat just asked you this question: " + question + " Give a short response to the question. Involve the question in your response. If the memory doesn't help, ignore it. These are your previous statements: " + ' '.join(prevs) + ". Make sure your answer is different and not repetitive from your last statements. No emojis. Only ASCII characters."
-        
+            prompt = "Write a " + str(min) + "-" + str(max) + " word response as if you were this person:" + ' '.join(keynotes) + " Your Twitch chat just said this: " + question + ". You have this memory that helps to answer: " + ' '.join(memory) + ". Give a short response. If the memory doesn't help, ignore it. Involve their statement in your response. These are your previous statements: " + ' '.join(prevs) + ". Make sure your answer is different and not repetitive from your last statements. No emojis. Only ASCII characters. No swearing or controversy. After your response, categorize yourself as either curious, thinking, uneasy, shocked, pleased, surprised, happy, amazed, or sorrow and write it as only one of those words after a new line no punctuation. You have this set of abilities that are encoded as parameters: " + ' '.join(functions) + ". If you call a function, you will perform the action that it describes. Each function is separated from its description by a ':' and separated from other functions by a ';' After categorizing your response, simply call one function using its name and '()' and write it after a new line no punctuation. "
+    else:
+        if len(prevs) == 0:
+            prompt = "Write a " + str(min) + "-" + str(max) + " word response as if you were this person:" + ' '.join(keynotes) + " Your Twitch chat just said this: " + question + "Give a short response. Involve their statement in your response. No emojis. Only ASCII characters. No swearing or controversy. After your response, categorize yourself as either curious, thinking, uneasy, shocked, pleased, surprised, happy, amazed, or sorrow and write it as only one of those words after a new line no punctuation. You have this set of abilities that are encoded as parameters: " + ' '.join(functions) + ". If you call a function, you will perform the action that it describes. Each function is separated from its description by a ':' and separated from other functions by a ';' After categorizing your response, simply call one function using its name and '()' and write it after a new line no punctuation."
+        else:
+            prompt = "Write a " + str(min) + "-" + str(max) + " word response as if you were this person:" + ' '.join(keynotes) + " Your Twitch chat just said this: " + question + " Give a short response. Involve their statement in your response. If the memory doesn't help, ignore it. These are your previous statements: " + ' '.join(prevs) + ". Make sure your answer is different and not repetitive from your last statements. No emojis. Only ASCII characters. No swearing or controversy. After your response, categorize yourself as either curious, thinking, uneasy, shocked, pleased, surprised, happy, amazed, or sorrow and write it as only one of those words after a new line no punctuation. You have this set of abilities that are encoded as parameters: " + ' '.join(functions) + ". If you call a function, you will perform the action that it describes. Each function is separated from its description by a ':' and separated from other functions by a ';' After categorizing your response, simply call one function using its name and '()' and write it after a new line no punctuation."
+    
 
-        response = openai.ChatCompletion.create(
-        model="gpt-4",
-        messages= [{"role": "user", "content": prompt}]
-        )
+    response = openai.ChatCompletion.create(
+    model="gpt-4",
+    messages= [{"role": "user", "content": prompt}]
+    )
 
 
 
-        ans = response['choices'][0]['message']['content']
-        save = "Question: " + question + " Response: " + ans
-        
-        if len(save) < 450:
-            insert_memory("kianix", [save])
+    total = response['choices'][0]['message']['content']
+    response_text = total.split("\n")[0]
+    emotion = total.split("\n")[-3].strip().lower()
+    function = total.split("\n")[-1].strip().lower()
+    ans = response_text
+    print(ans)
+    if emotion in ["curious", "thinking", "uneasy", "shocked", "pleased", "surprised", "happy", "amazed", "sorrow"]:
+        send_animation_trigger(emotion)
+    if function in ["stars()","hearts()", "cry()", "turnoffsigil()", "default()", "blureyes()", "powerstate()", "noflowers()"]:
+        send_expression(function)
+    rate = 125 + int(len(ans) * .01)
+    playTTS(ans, rate)
+    save = "Question: " + question + " Response: " + ans
+    if len(save) < 450:
+        insert_memory("kianix", [save])
 
-        print(ans)
-        playTTS(ans)
+    
 
-        prevs.append(ans)
-        curr += 1
 
 def questionChat(questions):
     #Maybe also add types of questions like, questions about self, questions about chat, questions about streamers, questions about news
     keynotes = read_file("keynotes.txt")
+    functions = read_file("functions.txt")
     load_dotenv()
     openai.api_key = os.getenv('OPENAI_API_KEY')
 
-    prompt = "You are a vtuber with these characteristics and backstory: " + ' '.join(keynotes) + ". You've already asked these questions: " + '?'.join(questions) + "Write a new unrelated question that is not about gaming you have not asked yet to the chat that you are streaming to."
+    prompt = "You are a vtuber with these characteristics and backstory: " + ' '.join(keynotes) + ". You've already asked these questions: " + '?'.join(questions) + "Write an interesting question you have not asked yet to your chat. No swearing or controversy. After your response, categorize yourself as either curious, thinking, uneasy, shocked, pleased, surprised, happy, amazed, or sorrow and write it as only one of those words after a new line no punctuation. You have this set of abilities that are encoded as parameters: " + ' '.join(functions) + ". If you call a function, you will perform the action that it describes. Each function is separated from its description by a ':' and separated from other functions by a ';' After categorizing your response, simply call one function using its name and '()' and write it after a new line no punctuation."
         
 
     response = openai.ChatCompletion.create(
@@ -84,17 +94,27 @@ def questionChat(questions):
 
     #Probably need to save the questions
 
-    ans = response['choices'][0]['message']['content']
-
+    total = response['choices'][0]['message']['content']
+    response_text = total.split("\n")[0]
+    emotion = total.split("\n")[-3].strip().lower()
+    function = total.split("\n")[-1].strip().lower()
+    ans = response_text
     print(ans)
-    playTTS(ans)
+    if emotion in ["curious", "thinking", "uneasy", "shocked", "pleased", "surprised", "happy", "amazed", "sorrow"]:
+        send_animation_trigger(emotion)
+    if function in ["stars()","hearts()", "cry()", "turnoffsigil()", "default()", "blureyes()", "powerstate()", "noflowers()"]:
+        send_expression(function)
+    rate = 125 + int(len(ans) * .01)
+    playTTS(ans, rate)
+
 
 def questionFromChat(text):
     keynotes = read_file("keynotes.txt")
+    functions = read_file("functions.txt")
     load_dotenv()
     openai.api_key = os.getenv('OPENAI_API_KEY')
 
-    prompt = "You are a vtuber with these characteristics and backstory: " + ' '.join(keynotes) + ". Someone wrote this in chat. It may contain Twitch emotes: " + text + "Write up a response, comment, question, or sarcastic quip about it. No emojis. ASCII characters only."
+    prompt = "You are a vtuber with these characteristics and backstory: " + ' '.join(keynotes) + ". Someone wrote this in chat. It may contain Twitch emotes: " + text + "Write up a response, comment, question, or sarcastic quip about it. No emojis. ASCII characters only. No swearing or controversy. After your response, categorize yourself as either curious, thinking, uneasy, shocked, pleased, surprised, happy, amazed, or sorrow and write it as only one of those words after a new line no punctuation. You have this set of abilities that are encoded as parameters: " + ' '.join(functions) + ". If you call a function, you will perform the action that it describes. Each function is separated from its description by a ':' and separated from other functions by a ';' After categorizing your response, simply call one function using its name and '()' and write it after a new line no punctuation."
         
 
     response = openai.ChatCompletion.create(
@@ -104,17 +124,27 @@ def questionFromChat(text):
 
     #Probably need to save the questions
 
-    ans = response['choices'][0]['message']['content']
-
+    total = response['choices'][0]['message']['content']
+    response_text = total.split("\n")[0]
+    emotion = total.split("\n")[-3].strip().lower()
+    function = total.split("\n")[-1].strip().lower()
+    ans = response_text
     print(ans)
-    playTTS(ans)
+    if emotion in ["curious", "thinking", "uneasy", "shocked", "pleased", "surprised", "happy", "amazed", "sorrow"]:
+        send_animation_trigger(emotion)
+    if function in ["stars()","hearts()", "cry()", "turnoffsigil()", "default()", "blureyes()", "powerstate()", "noflowers()"]:
+        send_expression(function)
+    rate = 125 + int(len(ans) * .01)
+    playTTS(ans, rate)
+
 
 def generateConversation():
     keynotes = read_file("keynotes.txt")
+    functions = read_file("functions.txt")
     load_dotenv()
     openai.api_key = os.getenv('OPENAI_API_KEY')
 
-    prompt = "You are a vtuber with these characteristics and backstory: " + ' '.join(keynotes) + ". Generate a random thought that anyone could have while going about their day. It can be random."
+    prompt = "You are a vtuber with these characteristics and backstory: " + ' '.join(keynotes) + ". Generate a random thought that anyone could have while going about their day. No swearing or controversy. It can be random. After your response, categorize yourself as either curious, thinking, uneasy, shocked, pleased, surprised, happy, amazed, or sorrow and write it as only one of those words after a new line no punctuation. You have this set of abilities that are encoded as parameters: " + ' '.join(functions) + ". If you call a function, you will perform the action that it describes. Each function is separated from its description by a ':' and separated from other functions by a ';' After categorizing your response, simply call one function using its name and '()' and write it after a new line no punctuation."
         
 
     response = openai.ChatCompletion.create(
@@ -124,17 +154,31 @@ def generateConversation():
 
     #Probably need to save the questions
 
-    ans = response['choices'][0]['message']['content']
+    total = response['choices'][0]['message']['content']
+    response_text = total.split("\n")[0]
+    emotion = total.split("\n")[-1].strip().lower()
+    ans = response_text
 
+    total = response['choices'][0]['message']['content']
+    response_text = total.split("\n")[0]
+    emotion = total.split("\n")[-3].strip().lower()
+    function = total.split("\n")[-1].strip().lower()
+    ans = response_text
     print(ans)
-    playTTS(ans)
+    if emotion in ["curious", "thinking", "uneasy", "shocked", "pleased", "surprised", "happy", "amazed", "sorrow"]:
+        send_animation_trigger(emotion)
+    if function in ["stars()","hearts()", "cry()", "turnoffsigil()", "default()", "blureyes()", "powerstate()", "noflowers()"]:
+        send_expression(function)
+    rate = 125 + int(len(ans) * .01)
+    playTTS(ans, rate)
 
 def generateJoke():
     keynotes = read_file("keynotes.txt")
+    functions = read_file("functions.txt")
     load_dotenv()
     openai.api_key = os.getenv('OPENAI_API_KEY')
 
-    prompt = "You are a vtuber with these characteristics and backstory: " + ' '.join(keynotes) + ". Generate a random joke."
+    prompt = "You are a vtuber with these characteristics and backstory: " + ' '.join(keynotes) + ". Generate a random joke. No swearing or controversy. After your response, categorize yourself as either curious, thinking, uneasy, shocked, pleased, surprised, happy, amazed, or sorrow and write it as only one of those words after a new line no punctuation. You have this set of abilities that are encoded as parameters: " + ' '.join(functions) + ". If you call a function, you will perform the action that it describes. Each function is separated from its description by a ':' and separated from other functions by a ';' After categorizing your response, simply call one function using its name and '()' and write it after a new line no punctuation. "
         
 
     response = openai.ChatCompletion.create(
@@ -143,19 +187,27 @@ def generateJoke():
     )
 
     #Probably need to save the questions
-
-    ans = response['choices'][0]['message']['content']
-
+    total = response['choices'][0]['message']['content']
+    response_text = total.split("\n")[0]
+    emotion = total.split("\n")[-3].strip().lower()
+    function = total.split("\n")[-1].strip().lower()
+    ans = response_text
     print(ans)
-    playTTS(ans)
+    if emotion in ["curious", "thinking", "uneasy", "shocked", "pleased", "surprised", "happy", "amazed", "sorrow"]:
+        send_animation_trigger(emotion)
+    if function in ["stars()","hearts()", "cry()", "turnoffsigil()", "default()", "blureyes()", "powerstate()", "noflowers()"]:
+        send_expression(function)
+    rate = 125 + int(len(ans) * .01)
+    playTTS(ans, rate)
 
 def generateSelfTalk():
     keynotes = read_file("keynotes.txt")
+    functions = read_file("functions.txt")
     backstory = read_file("backstory.txt")
     load_dotenv()
     openai.api_key = os.getenv('OPENAI_API_KEY')
 
-    prompt = "You are a vtuber with these characteristics: " + ' '.join(keynotes) + "This is your backstory: " + ' '.join(backstory) + ". Reminisce on the past under 300 words."
+    prompt = "You are a vtuber with these characteristics: " + ' '.join(keynotes) + "This is your backstory: " + ' '.join(backstory) + ". Reminisce on a made-up story from the past under 300 words. No swearing or controversy. After your response, categorize yourself as either curious, thinking, uneasy, shocked, pleased, surprised, happy, amazed, or sorrow and write it as only one of those words after a new line no punctuation. You have this set of abilities that are encoded as parameters: " + ' '.join(functions) + ". If you call a function, you will perform the action that it describes. Each function is separated from its description by a ':' and separated from other functions by a ';' After categorizing your response, simply call one function using its name and '()' and write it after a new line no punctuation."
         
 
     response = openai.ChatCompletion.create(
@@ -165,20 +217,29 @@ def generateSelfTalk():
 
     #Probably need to save the questions
 
-    ans = response['choices'][0]['message']['content']
-
+    total = response['choices'][0]['message']['content']
+    response_text = total.split("\n")[0]
+    emotion = total.split("\n")[-3].strip().lower()
+    function = total.split("\n")[-1].strip().lower()
+    ans = response_text
     print(ans)
-    playTTS(ans)
+    if emotion in ["curious", "thinking", "uneasy", "shocked", "pleased", "surprised", "happy", "amazed", "sorrow"]:
+        send_animation_trigger(emotion)
+    if function in ["stars()","hearts()", "cry()", "turnoffsigil()", "default()", "blureyes()", "powerstate()", "noflowers()"]:
+        send_expression(function)
+    rate = 125 + int(len(ans) * .01)
+    playTTS(ans, rate)
 
 def emote():
-    print("Smile")
+    send_expression("turnoffsigil()")
 
 def sayGoodbye():
     keynotes = read_file("keynotes.txt")
+    functions = read_file("functions.txt")
     load_dotenv()
     openai.api_key = os.getenv('OPENAI_API_KEY')
 
-    prompt = "You are a vtuber with these characteristics and backstory: " + ' '.join(keynotes) + ". You are saying goodbye to your stream. Generate a goodbye and thank them for watching the stream."
+    prompt = "You are a vtuber with these characteristics and backstory: " + ' '.join(keynotes) + ". You are saying goodbye to your stream. Generate a goodbye and thank them for watching the stream. No swearing or controversy. After your response, categorize yourself as either curious, thinking, uneasy, shocked, pleased, surprised, happy, amazed, or sorrow and write it as only one of those words after a new line no punctuation. You have this set of abilities that are encoded as parameters: " + ' '.join(functions) + ". If you call a function, you will perform the action that it describes. Each function is separated from its description by a ':' and separated from other functions by a ';' After categorizing your response, simply call one function using its name and '()' and write it after a new line no punctuation."
         
 
     response = openai.ChatCompletion.create(
@@ -188,8 +249,17 @@ def sayGoodbye():
 
     #Probably need to save the questions
 
-    ans = response['choices'][0]['message']['content']
-
+    total = response['choices'][0]['message']['content']
+    response_text = total.split("\n")[0]
+    emotion = total.split("\n")[-3].strip().lower()
+    function = total.split("\n")[-1].strip().lower()
+    ans = response_text
     print(ans)
-    playTTS(ans)
+    if emotion in ["curious", "thinking", "uneasy", "shocked", "pleased", "surprised", "happy", "amazed", "sorrow"]:
+        send_animation_trigger(emotion)
+    if function in ["stars()","hearts()", "cry()", "turnoffsigil()", "default()", "blureyes()", "powerstate()", "noflowers()"]:
+        send_expression(function)
+    rate = 125 + int(len(ans) * .01)
+    playTTS(ans, rate)
+
 
