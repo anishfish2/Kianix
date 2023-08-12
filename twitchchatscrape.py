@@ -48,7 +48,7 @@ def write_data(write_event):
         write_event.wait()  # Wait for the read to finish
         write_event.clear()  # Reset the event
         
-        update_file("pokelawls")
+        update_file("anishfish")
 
 def main():
     file_path = "shared.txt"

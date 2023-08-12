@@ -39,11 +39,14 @@ def generate_audio_from_text(text, voice_name, rate):
     engine.runAndWait()
 
 def display_text(text, display_time):
-    font_size = 15
+    if len(text.split(' ')) > 30:
+        font_size = 15
+    else:
+        font_size = 30
     def close_window():
         label.master.destroy()
 
-    label = tk.Label(text=text, font=('Segoe Script', font_size), fg='black', bg='white', wraplength=400)
+    label = tk.Label(text=text, font=('Verdana', font_size), fg='black', bg='white', wraplength=400)
     label.master.overrideredirect(True)
     label.master.geometry("+250+250")
     label.master.lift()
@@ -102,4 +105,4 @@ def playTTS(input_text, rate):
     sd.play(modified_audio, sample_rate)
     sd.wait()
 
-playTTS( "This is a long text that will wrap automatically within the label to fit the specified wraplength.", 120)
+#playTTS( "This is a long text that will wrap automatically within the label to fit the specified wraplength.", 120)
