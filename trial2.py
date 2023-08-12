@@ -1,38 +1,34 @@
-from full_query import full_query
-from insert_memory import insert_memory
-import openai
-from dotenv import load_dotenv
+import time
 import os
-import yaml
-from texttospeech import *
-from live2D import *
-import random
-def read_file(path_to_file):
-    with open(path_to_file) as f:
-        contents = ' '.join(f.readlines())
-        return contents
-    
+import soundfile as sf
+import numpy as np
+import pygame
+import scipy
+os.environ['CURL_CA_BUNDLE'] = ''
+from transformers import AutoProcessor, AutoModel
 
-def questionFromChat():
-    keynotes = read_file("keynotes.txt")
-    functions = read_file("functions.txt")
-    load_dotenv()
-    openai.api_key = os.getenv('OPENAI_API_KEY')
+start_time = time.time()
+processor = AutoProcessor.from_pretrained("suno/bark-small")
+model = AutoModel.from_pretrained("suno/bark-small")
 
-    prompt = "You are a vtuber with these characteristics and backstory: " + ' '.join(keynotes) + " Talk about what you plan to do in the future. Mention that you want to learn how to play games like dark souls or mario. Also mention that you want do learn how to do certain things. Mention that you are currently learning how to sing as well as play some atari games and AI based games."
-        
+inputs = processor(
+    text=["Hello, my name is Suno. And, uh — and I like pizza. [laughs] But I also have other interests such as playing tic tac toe."],
+    return_tensors="pt",
+)
 
-    response = openai.ChatCompletion.create(
-    model="gpt-4",
-    messages= [{"role": "user", "content": prompt}]
-    )
+# Generate speech values
+speech_values = model.generate(**inputs, do_sample=True)
+sampling_rate = model.generation_config.sample_rate
+scipy.io.wavfile.write("bark_out.wav", rate=sampling_rate, data=speech_values.cpu().numpy().squeeze())
+end_time = time.time()
+print("Elapsed time 1 is " + str(end_time - start_time))
 
-    #Probably need to save the questions
+pygame.mixer.init()
+file_path = "bark_out.wav"
+pygame.mixer.music.load(file_path)
 
-    total = response['choices'][0]['message']['content']
-    response_text = total.split("\n")[0]
-    ans = response_text
-    print(ans)
-    
+pygame.mixer.music.play()
 
-questionFromChat()
+while pygame.mixer.music.get_busy():
+    pygame.time.Clock().tick(10)
+print("Elapsed time 2 is " + str(end_time - start_time))
