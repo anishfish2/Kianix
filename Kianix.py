@@ -5,6 +5,7 @@ import random
 import time
 from kianix_functions import *
 import threading
+import random
 
 def key_listener(stop_event):
     while True:
@@ -13,13 +14,22 @@ def key_listener(stop_event):
             stop_event.set()  # Signal the loop to stop
             break
 
+
+    
+def read_data():
+    with open("shared.txt", "r") as file:
+        data = file.read()
+        return data
 def kianix_awake(stop_event):
     askedQuestions = []
-    textFromChat = "Can you soap my mouth Flushed"
+
+    #read the latest twitchemssage
     
     while not stop_event.is_set():
         try:
-            decision = random.randint(0,6)
+            #Can't end stream if its on respond to chat
+            prevStatement = ""
+            decision = random.randint(2,2)
             if decision == 0:
                 print("Chat question:")
                 respondToChat()
@@ -27,8 +37,12 @@ def kianix_awake(stop_event):
                 print("Asking chat a question:")
                 questionChat(askedQuestions)
             elif decision == 2:
-                print("User said this: " +  textFromChat)
-                questionFromChat(textFromChat)
+                twitchchatdata = read_data().split("\n")[-10:]
+                for i in twitchchatdata:
+                    if len(i.split(" ")) > 6:
+                        feed = i
+                print("User said this: " +  feed)
+                questionFromChat(feed)
             elif decision == 3:
                 print("Generating Conversation:")
                 generateConversation()
@@ -46,18 +60,25 @@ def kianix_awake(stop_event):
 
 #Kianix must be running in Unity
 def main():
-    stop_event = threading.Event()
+    awake = True
+    while awake:
+        try:
+            stop_event = threading.Event()
 
-    # Create and start the threads
-    loop_thread = threading.Thread(target=kianix_awake, args=(stop_event,))
-    listener_thread = threading.Thread(target=key_listener, args=(stop_event,))
+            # Create and start the threads
+            loop_thread = threading.Thread(target=kianix_awake, args=(stop_event,))
+            listener_thread = threading.Thread(target=key_listener, args=(stop_event,))
 
-    loop_thread.start()
-    listener_thread.start()
+            loop_thread.start()
+            listener_thread.start()
 
-    # Wait for the loop thread to finish
-    loop_thread.join()
-    sayGoodbye()
+            # Wait for the loop thread to finish
+            loop_thread.join()
+            sayGoodbye()
+            awake = False
+        except:
+            print("something went wrong, restarting")
+
     
 
 

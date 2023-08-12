@@ -1,38 +1,69 @@
-import openai
-from dotenv import load_dotenv
-import os
 import threading
-from texttospeech import *
-from live2D import *
-import sys
-def process_chunk(content):
-    if content is not None:
-        print(content, end=';')
-        # Open a new thread and call the playTTS function
-        thread = threading.Thread(target=playTTS, args=(content,125))
-        thread.start()
+import os
+from dotenv import load_dotenv
+import socket
+import logging
+from emoji import demojize
+from datetime import datetime
+import time
 
-#To do add a current action thing so that in the future u can add a comment on action function
-def read_file(path_to_file):
-    with open(path_to_file) as f:
-        contents = ' '.join(f.readlines())
-        return contents
-load_dotenv()
-openai.api_key = os.getenv('OPENAI_API_KEY')
-keynotes = read_file("keynotes.txt")
-functions = read_file("functions.txt")
-prompt = "You are a vtuber with these characteristics and backstory: " + ' '.join(keynotes) + ". Generate a random joke. No swearing or controversy. After your response, categorize yourself as either curious, thinking, uneasy, shocked, pleased, surprised, happy, amazed, or sorrow and write it as only one of those words after a new line no punctuation. You have this set of abilities that are encoded as parameters: " + ' '.join(functions) + ". If you call a function, you will perform the action that it describes. Each function is separated from its description by a ':' and separated from other functions by a ';' After categorizing your response, simply call one function using its name and '()' and write it after a new line no punctuation. "
-chunks = ""
-for chunk in openai.ChatCompletion.create(
-    model="gpt-4",
-    messages= [{"role": "user", "content": prompt}],
-    stream=True,
-):
-    content = chunk["choices"][0].get("delta", {}).get("content") + ' '.join(chunks)
-    if content is not None:
-        print(content)
-        #sys.stdout.write(content)
-        process_chunk(content)
-    else :
-        chunks += content
-    
+def update_file(channel):
+
+        load_dotenv()
+        oauth = os.getenv('TWITCH_OAUTH')
+        server = 'irc.chat.twitch.tv'
+        port = 6667
+        nickname = 'anishfish'
+        token = oauth
+        channel = "#" + channel
+        sock = socket.socket()
+        sock.connect((server, port))
+        sock.send(f"PASS {token}\n".encode('utf-8'))
+        sock.send(f"NICK {nickname}\n".encode('utf-8'))
+        sock.send(f"JOIN {channel}\n".encode('utf-8'))
+
+        logging.basicConfig(level=logging.DEBUG,
+                            format='%(asctime)s — %(message)s',
+                            datefmt='%Y-%m-%d_%H:%M:%S',
+                            handlers=[logging.FileHandler("shared.txt", encoding='utf-8')])
+        while True:
+            resp = sock.recv(2048).decode('utf-8')
+            username = ''.join(resp.split(" ")[0].split("!")[0].split("."))[1:] 
+            message = resp.split(":")[-1]
+
+            resp = username +": " + message
+
+            if resp.startswith('PING'):
+                sock.send("PONG\n".encode('utf-8'))
+            
+            elif len(resp) > 0:
+                logging.info(demojize(resp))
+
+def write_data(write_event):
+    while True:
+        write_event.wait()  # Wait for the read to finish
+        write_event.clear()  # Reset the event
+        
+        update_file("")
+
+def main():
+    write_event = threading.Event()
+    writer_thread = threading.Thread(target=write_data, args=(write_event,))
+    writer_thread.start()
+
+    while True:
+        input("Press Enter to read data from the file: ")
+
+        write_event.clear()  # Pause the write operation
+        read_data()
+        write_event.set()  # Resume the write operation
+
+
+def read_data():
+    with open("shared.txt", "r") as file:
+        data = file.read()
+        print("Data read from the file:")
+        print(data)
+
+if __name__ == "__main__":
+    main()

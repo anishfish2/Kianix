@@ -31,13 +31,13 @@ def respondToChat():
     curr = 0
     prevs = []
 
-    question = input()
-
+    question = "who are you?"
     query = full_query("kianix", [question], 1)
     memory = query[0]
     score = query[1]
     max = random.randint(11, 100)
     min = random.randint(0, 10)
+    
     #TO DO add a check if memory query value threshold is high, otherwise perhaps dont use the memory as it's not relevant and just make something up
     if score > .75:
         if len(prevs) == 0:
@@ -144,7 +144,7 @@ def generateConversation():
     load_dotenv()
     openai.api_key = os.getenv('OPENAI_API_KEY')
 
-    prompt = "You are a vtuber with these characteristics and backstory: " + ' '.join(keynotes) + ". Generate a random thought that anyone could have while going about their day. No swearing or controversy. It can be random. After your response, categorize yourself as either curious, thinking, uneasy, shocked, pleased, surprised, happy, amazed, or sorrow and write it as only one of those words after a new line no punctuation. You have this set of abilities that are encoded as parameters: " + ' '.join(functions) + ". If you call a function, you will perform the action that it describes. Each function is separated from its description by a ':' and separated from other functions by a ';' After categorizing your response, simply call one function using its name and '()' and write it after a new line no punctuation."
+    prompt = "Muse to yourself. No swearing or controversy. It can be random. After your response, categorize yourself as either curious, thinking, uneasy, shocked, pleased, surprised, happy, amazed, or sorrow and write it as only one of those words after a new line no punctuation. You have this set of abilities that are encoded as parameters: " + ' '.join(functions) + ". If you call a function, you will perform the action that it describes. Each function is separated from its description by a ':' and separated from other functions by a ';' After categorizing your response, simply call one function using its name and '()' and write it after a new line no punctuation."
         
 
     response = openai.ChatCompletion.create(
@@ -178,7 +178,7 @@ def generateJoke():
     load_dotenv()
     openai.api_key = os.getenv('OPENAI_API_KEY')
 
-    prompt = "You are a vtuber with these characteristics and backstory: " + ' '.join(keynotes) + ". Generate a random joke. No swearing or controversy. After your response, categorize yourself as either curious, thinking, uneasy, shocked, pleased, surprised, happy, amazed, or sorrow and write it as only one of those words after a new line no punctuation. You have this set of abilities that are encoded as parameters: " + ' '.join(functions) + ". If you call a function, you will perform the action that it describes. Each function is separated from its description by a ':' and separated from other functions by a ';' After categorizing your response, simply call one function using its name and '()' and write it after a new line no punctuation. "
+    prompt = "Generate a random joke. No swearing or controversy. After your response, categorize yourself as either curious, thinking, uneasy, shocked, pleased, surprised, happy, amazed, or sorrow and write it as only one of those words after a new line no punctuation. You have this set of abilities that are encoded as parameters: " + ' '.join(functions) + ". If you call a function, you will perform the action that it describes. Each function is separated from its description by a ':' and separated from other functions by a ';' After categorizing your response, simply call one function using its name and '()' and write it after a new line no punctuation. "
         
 
     response = openai.ChatCompletion.create(
@@ -207,7 +207,7 @@ def generateSelfTalk():
     load_dotenv()
     openai.api_key = os.getenv('OPENAI_API_KEY')
 
-    prompt = "You are a vtuber with these characteristics: " + ' '.join(keynotes) + "This is your backstory: " + ' '.join(backstory) + ". Reminisce on a made-up story from the past under 300 words. No swearing or controversy. After your response, categorize yourself as either curious, thinking, uneasy, shocked, pleased, surprised, happy, amazed, or sorrow and write it as only one of those words after a new line no punctuation. You have this set of abilities that are encoded as parameters: " + ' '.join(functions) + ". If you call a function, you will perform the action that it describes. Each function is separated from its description by a ':' and separated from other functions by a ';' After categorizing your response, simply call one function using its name and '()' and write it after a new line no punctuation."
+    prompt = "You are a vtuber with these characteristics: " + ' '.join(keynotes) + "This is your backstory: " + ' '.join(backstory) + ". Reminisce on a made-up story from the past under 60 words. No swearing or controversy. After your response, categorize yourself as either curious, thinking, uneasy, shocked, pleased, surprised, happy, amazed, or sorrow and write it as only one of those words after a new line no punctuation. You have this set of abilities that are encoded as parameters: " + ' '.join(functions) + ". If you call a function, you will perform the action that it describes. Each function is separated from its description by a ':' and separated from other functions by a ';' After categorizing your response, simply call one function using its name and '()' and write it after a new line no punctuation."
         
 
     response = openai.ChatCompletion.create(
@@ -239,7 +239,7 @@ def sayGoodbye():
     load_dotenv()
     openai.api_key = os.getenv('OPENAI_API_KEY')
 
-    prompt = "You are a vtuber with these characteristics and backstory: " + ' '.join(keynotes) + ". You are saying goodbye to your stream. Generate a goodbye and thank them for watching the stream. No swearing or controversy. After your response, categorize yourself as either curious, thinking, uneasy, shocked, pleased, surprised, happy, amazed, or sorrow and write it as only one of those words after a new line no punctuation. You have this set of abilities that are encoded as parameters: " + ' '.join(functions) + ". If you call a function, you will perform the action that it describes. Each function is separated from its description by a ':' and separated from other functions by a ';' After categorizing your response, simply call one function using its name and '()' and write it after a new line no punctuation."
+    prompt = "You are a vtuber with these characteristics and backstory: " + ' '.join(keynotes) + ". Tell your stream you have to go and thank them for watching the stream. No swearing or controversy. After your response, categorize yourself as either curious, thinking, uneasy, shocked, pleased, surprised, happy, amazed, or sorrow and write it as only one of those words after a new line no punctuation. You have this set of abilities that are encoded as parameters: " + ' '.join(functions) + ". If you call a function, you will perform the action that it describes. Each function is separated from its description by a ':' and separated from other functions by a ';' After categorizing your response, simply call one function using its name and '()' and write it after a new line no punctuation."
         
 
     response = openai.ChatCompletion.create(

@@ -1,3 +1,4 @@
+import threading
 import os
 from dotenv import load_dotenv
 import socket
@@ -5,22 +6,16 @@ import logging
 from emoji import demojize
 from datetime import datetime
 import time
-import multiprocessing
-import re
 
+def update_file(channel):
 
-file_path = 'chat_log.txt'
-file_lock = multiprocessing.Lock()
-
-def update_file():
-    with file_lock:
         load_dotenv()
         oauth = os.getenv('TWITCH_OAUTH')
         server = 'irc.chat.twitch.tv'
         port = 6667
         nickname = 'anishfish'
         token = oauth
-        channel = '#pokelawls'
+        channel = "#" + channel
         sock = socket.socket()
         sock.connect((server, port))
         sock.send(f"PASS {token}\n".encode('utf-8'))
@@ -30,13 +25,11 @@ def update_file():
         logging.basicConfig(level=logging.DEBUG,
                             format='%(asctime)s — %(message)s',
                             datefmt='%Y-%m-%d_%H:%M:%S',
-                            handlers=[logging.FileHandler('chat_log.txt', encoding='utf-8')])
+                            handlers=[logging.FileHandler("shared.txt", encoding='utf-8')])
         while True:
             resp = sock.recv(2048).decode('utf-8')
-            #print(resp)
             username = ''.join(resp.split(" ")[0].split("!")[0].split("."))[1:] 
             message = resp.split(":")[-1]
-            # save = username + ":" + message
 
             resp = username +": " + message
 
@@ -46,18 +39,37 @@ def update_file():
             elif len(resp) > 0:
                 logging.info(demojize(resp))
 
-            
-
+def write_data(write_event):
+    while True:
+        write_event.wait()  # Wait for the read to finish
+        write_event.clear()  # Reset the event
+        
+        update_file("pokelawls")
 
 def main():
-    try:
-        update_file()
-    except Exception as e:
-        print("Locked chat file", e)
+    file_path = "shared.txt"
 
+    # Open the file in write mode, which truncates it and removes contents
+    with open(file_path, "w") as file:
+        pass
+
+    write_event = threading.Event()
+    writer_thread = threading.Thread(target=write_data, args=(write_event,))
+    writer_thread.start()
+
+    while True:
+        input("Press Enter to read data from the file: ")
+
+        write_event.clear()  # Pause the write operation
+        read_data()
+        write_event.set()  # Resume the write operation
+
+
+def read_data():
+    with open("shared.txt", "r") as file:
+        data = file.read()
+        print("Data read from the file:")
+        print(data)
 
 if __name__ == "__main__":
     main()
-
-
-
