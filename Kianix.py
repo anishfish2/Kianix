@@ -7,54 +7,70 @@ from kianix_functions import *
 import threading
 import random
 
-def key_listener(stop_event):
-    while True:
-        if input() == 'q':
-            print("Ending Stream")
-            stop_event.set()  # Signal the loop to stop
-            break
-
-
     
-def read_data():
-    with open("shared.txt", "r") as file:
-        data = file.read()
-        return data
+
 def kianix_awake(stop_event):
     askedQuestions = []
 
-    #read the latest twitchemssage
-    
+    time_awoken = time.time()
+
+    numCurrentChatMessages = len(read_data().split('\n'))
+
+    lastChatsRespondedTo = []
+    plans = read_file('plans.txt')
+
+    startStream(plans)
     while not stop_event.is_set():
         try:
-            #Can't end stream if its on respond to chat
-            prevStatement = ""
-            decision = random.randint(2,2)
-            if decision == 0:
-                print("Chat question:")
-                respondToChat()
-            elif decision == 1:
-                print("Asking chat a question:")
-                questionChat(askedQuestions)
-            elif decision == 2:
-                twitchchatdata = read_data().split("\n")[-10:]
-                for i in twitchchatdata:
-                    if len(i.split(" ")) > 6:
-                        feed = i
-                print("User said this: " +  feed)
-                questionFromChat(feed)
-            elif decision == 3:
-                print("Generating Conversation:")
-                generateConversation()
-            elif decision == 4:
-                print("Generating Joke:")
-                generateJoke()
-            elif decision == 5:
-                print("Generating SelfTalk:")
-                generateSelfTalk()
-            elif decision == 6:
-                emote()
+            current_time = time.time()
+            elapsed_time = current_time - time_awoken
+
+            #currentAction = read_file("currentAction.txt")
+            nothingUrgent = True
+            if nothingUrgent:
+                #If new chat
+                newNumCurrentChatMessages = len(read_data().split('\n'))
+                choice = random.randint(1, 10)
+                if (newNumCurrentChatMessages != numCurrentChatMessages) and (choice < 9):
+                    numCurrentChatMessages = newNumCurrentChatMessages
+                    twitchchatdata = read_data().split("\n")[-10:]
+                    feed = ""
+                    for i in twitchchatdata:
+                        if len(i.split(" ")) > 6:
+                            feed = i
+                    if feed not in lastChatsRespondedTo:
+                        print("User said: " + feed)
+                        questionFromChat(feed)
+
+                    if len(lastChatsRespondedTo) < 9:
+                        lastChatsRespondedTo.append(feed)
+                    else:
+                        lastChatsRespondedTo = [feed]
+                else:
+                    decision = random.randint(0, 4)
+                    if decision == 0:
+                        questionChat(askedQuestions)
+                        
+                        #Wait a bit
+                        i = 0
+                        while i < random.randint(50000000,100000000):
+                            i+=1
+                        # continue to next while loop, where check if response from chat has been generated
+                        #continue
+
+                    elif decision == 3:
+                        generateConversation()
+                    
+                    elif decision == 4:
+                        generateJoke()
+
+                    elif decision == 5:
+                        generateSelfTalk()
+
+                    elif decision == 6:
+                        emote()
         except:
+            print('died')
             print("Some Error Happened -> Restarting")
             continue
 
@@ -78,10 +94,6 @@ def main():
             awake = False
         except:
             print("something went wrong, restarting")
-
-    
-
-
 
 if __name__ == '__main__':
     main()

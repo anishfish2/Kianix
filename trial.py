@@ -1,69 +1,33 @@
-import threading
-import os
-from dotenv import load_dotenv
-import socket
-import logging
-from emoji import demojize
-from datetime import datetime
-import time
+import tkinter as tk
+import win32api
+import win32con
+import pywintypes
 
-def update_file(channel):
+def display_text(text, display_time):
+    def close_window():
+        label.master.destroy()
 
-        load_dotenv()
-        oauth = os.getenv('TWITCH_OAUTH')
-        server = 'irc.chat.twitch.tv'
-        port = 6667
-        nickname = 'anishfish'
-        token = oauth
-        channel = "#" + channel
-        sock = socket.socket()
-        sock.connect((server, port))
-        sock.send(f"PASS {token}\n".encode('utf-8'))
-        sock.send(f"NICK {nickname}\n".encode('utf-8'))
-        sock.send(f"JOIN {channel}\n".encode('utf-8'))
+    label = tk.Label(text=text, font=('Segoe Script', '80'), fg='black', bg='white')
+    label.master.overrideredirect(True)
+    label.master.geometry("+250+250")
+    label.master.lift()
+    label.master.wm_attributes("-topmost", True)
+    label.master.wm_attributes("-disabled", True)
+    label.master.wm_attributes("-transparentcolor", "white")
 
-        logging.basicConfig(level=logging.DEBUG,
-                            format='%(asctime)s — %(message)s',
-                            datefmt='%Y-%m-%d_%H:%M:%S',
-                            handlers=[logging.FileHandler("shared.txt", encoding='utf-8')])
-        while True:
-            resp = sock.recv(2048).decode('utf-8')
-            username = ''.join(resp.split(" ")[0].split("!")[0].split("."))[1:] 
-            message = resp.split(":")[-1]
+    hWindow = pywintypes.HANDLE(int(label.master.frame(), 16))
+    exStyle = win32con.WS_EX_COMPOSITED | win32con.WS_EX_LAYERED | win32con.WS_EX_NOACTIVATE | win32con.WS_EX_TOPMOST | win32con.WS_EX_TRANSPARENT
+    win32api.SetWindowLong(hWindow, win32con.GWL_EXSTYLE, exStyle)
 
-            resp = username +": " + message
+    label.pack()
 
-            if resp.startswith('PING'):
-                sock.send("PONG\n".encode('utf-8'))
-            
-            elif len(resp) > 0:
-                logging.info(demojize(resp))
+    # Close the window after the specified display time (in milliseconds)
+    label.after(display_time, close_window)
 
-def write_data(write_event):
-    while True:
-        write_event.wait()  # Wait for the read to finish
-        write_event.clear()  # Reset the event
-        
-        update_file("")
+    label.mainloop()
 
 def main():
-    write_event = threading.Event()
-    writer_thread = threading.Thread(target=write_data, args=(write_event,))
-    writer_thread.start()
+    display_text("Hello, World!", 5000)
 
-    while True:
-        input("Press Enter to read data from the file: ")
-
-        write_event.clear()  # Pause the write operation
-        read_data()
-        write_event.set()  # Resume the write operation
-
-
-def read_data():
-    with open("shared.txt", "r") as file:
-        data = file.read()
-        print("Data read from the file:")
-        print(data)
-
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

@@ -27,17 +27,21 @@ def update_file(channel):
                             datefmt='%Y-%m-%d_%H:%M:%S',
                             handlers=[logging.FileHandler("shared.txt", encoding='utf-8')])
         while True:
-            resp = sock.recv(2048).decode('utf-8')
-            username = ''.join(resp.split(" ")[0].split("!")[0].split("."))[1:] 
-            message = resp.split(":")[-1]
+            try:
+                resp = sock.recv(2048).decode('utf-8')
+                username = ''.join(resp.split(" ")[0].split("!")[0].split("."))[1:] 
+                message = resp.split(":")[-1]
+                if message == "":
+                    continue
+                resp = username +": " + message
 
-            resp = username +": " + message
-
-            if resp.startswith('PING'):
-                sock.send("PONG\n".encode('utf-8'))
-            
-            elif len(resp) > 0:
-                logging.info(demojize(resp))
+                if resp.startswith('PING'):
+                    sock.send("PONG\n".encode('utf-8'))
+                
+                elif len(resp) > 0:
+                    logging.info(demojize(resp))
+            except:
+                continue
 
 def write_data(write_event):
     while True:
@@ -68,8 +72,10 @@ def main():
 def read_data():
     with open("shared.txt", "r") as file:
         data = file.read()
+        print(len(data))
         print("Data read from the file:")
         print(data)
+        return data
 
 if __name__ == "__main__":
     main()
