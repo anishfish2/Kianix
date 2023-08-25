@@ -6,6 +6,19 @@ import logging
 from emoji import demojize
 from datetime import datetime
 import time
+import subprocess
+import sys
+
+def restart_script():
+    # Get the command-line arguments used to run the current script
+    script_args = [sys.executable] + sys.argv
+
+    # Spawn a new instance of the script
+    subprocess.Popen(script_args)
+
+    # Exit the current instance of the script
+    sys.exit()
+
 
 def update_file(channel):
 
@@ -29,10 +42,15 @@ def update_file(channel):
         while True:
             try:
                 resp = sock.recv(2048).decode('utf-8')
+                if "ING: tmi.twitch.tv" in resp:
+                    restart_script()
                 username = ''.join(resp.split(" ")[0].split("!")[0].split("."))[1:] 
                 message = resp.split(":")[-1]
-                if message == "":
+                if message == "" or username == "tmitwitchtv" or "End of /NAMES list" in message:
                     continue
+                if message.strip() == "tmi.twitch.tv":
+                    restart_script()
+
                 resp = username +": " + message
 
                 if resp.startswith('PING'):

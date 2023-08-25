@@ -27,28 +27,34 @@ def send_data(identifier, data):
             send = "sorrowtrigger"
     elif identifier == "Expression":
         send=""
-        if data.lower() == "stars()":
+        if data.lower() == "donothing()":
             send = "0"
-        elif data.lower() == "hearts()":
-            send = "3"
-        elif data.lower() == " cry()":
+        elif data.lower() == "confused()":
             send = "1"
-        elif data.lower() == "turnoffsigil()":
+        elif data.lower() == "hearts()":
             send = "2"
-        elif data.lower() == "default()":
-            send = "5"
-        elif data.lower() == "blureyes()":
-            send = "6"
-        elif data.lower() == "powerstate()":
+        elif data.lower() == "angry()":
+            send = "3"
+        elif data.lower() == "pentablet()":
             send = "7"
-        elif data.lower() == "noflowers()":
-            send = "4"
-
+        elif data.lower() == "noheadband()":
+            send = "8"
+        elif data.lower() == "blush()":
+            send = "9"
+        elif data.lower() == "blankeyes()":
+            send = "11"
+        elif data.lower() == "pout()":
+            send = "12"
+        elif data.lower() == "writetablet()":
+            send = "14"
+        elif data.lower() == "brighteyes()":
+            send = "15"
     send = f"{identifier}:{send}"
     HOST = 'localhost'
     PORT = 12345  # Choose a free port
     try:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            print("sending" + send)
             s.connect((HOST, PORT))
             s.sendall(send.encode())
     except:
