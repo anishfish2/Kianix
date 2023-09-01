@@ -14,7 +14,8 @@ def kianix_awake(stop_event):
 
     time_awoken = time.time()
 
-    numCurrentChatMessages = len(read_data().split('\n'))
+    currChat = read_data()
+    numCurrentChatMessages = len(currChat.split('\n'))
 
     lastChatsRespondedTo = []
     plans = read_file('plans.txt')
@@ -29,18 +30,19 @@ def kianix_awake(stop_event):
             nothingUrgent = True
             if nothingUrgent:
                 #If new chat
-                newNumCurrentChatMessages = len(read_data().split('\n'))
-                choice = random.randint(1, 10)
-                if (newNumCurrentChatMessages != numCurrentChatMessages) and (choice < 9):
+                currChat = read_data()
+                newNumCurrentChatMessages = len(currChat.split('\n'))
+                choice = random.randint(0, 10)
+                if (newNumCurrentChatMessages != numCurrentChatMessages) and (choice <= 9):
                     numCurrentChatMessages = newNumCurrentChatMessages
-                    twitchchatdata = read_data().split("\n")[-10:]
+                    twitchchatdata = currChat.split("\n")[-10:]
                     feed = ""
                     for i in twitchchatdata:
-                        if len(i.split(" ")) > 6:
+                        print(i)
+                        if i not in lastChatsRespondedTo and i != "":
                             feed = i
-                    if feed not in lastChatsRespondedTo:
-                        print("User said: " + feed)
-                        questionFromChat(feed)
+                            print("User said: " + feed)
+                            questionFromChat(feed)
 
                     if len(lastChatsRespondedTo) < 9:
                         lastChatsRespondedTo.append(feed)
@@ -49,6 +51,7 @@ def kianix_awake(stop_event):
                 else:
                     decision = random.randint(0, 4)
                     if decision == 0:
+                        print("questioning chat")
                         questionChat(askedQuestions)
                         
                         #Wait a bit
@@ -59,12 +62,15 @@ def kianix_awake(stop_event):
                         #continue
 
                     elif decision == 3:
+                        print("making conversation")
                         generateConversation()
                     
                     elif decision == 4:
+                        print("generating joke")
                         generateJoke()
 
                     elif decision == 5:
+                        print("talking to myself")
                         generateSelfTalk()
 
                     elif decision == 6:
