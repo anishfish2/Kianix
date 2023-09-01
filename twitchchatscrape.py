@@ -10,13 +10,8 @@ import subprocess
 import sys
 
 def restart_script():
-    # Get the command-line arguments used to run the current script
     script_args = [sys.executable] + sys.argv
-
-    # Spawn a new instance of the script
     subprocess.Popen(script_args)
-
-    # Exit the current instance of the script
     sys.exit()
 
 
@@ -63,28 +58,32 @@ def update_file(channel):
 
 def write_data(write_event):
     while True:
-        write_event.wait()  # Wait for the read to finish
-        write_event.clear()  # Reset the event
-        
-        update_file("anishfish")
+        write_event.wait()
+        write_event.clear()
+        update_file("forsen")
+
 
 def main():
     file_path = "shared.txt"
-
-    # Open the file in write mode, which truncates it and removes contents
     with open(file_path, "w") as file:
         pass
 
     write_event = threading.Event()
     writer_thread = threading.Thread(target=write_data, args=(write_event,))
+    writer_thread.daemon = True  # Set the thread as daemon
     writer_thread.start()
 
-    while True:
-        input("Press Enter to read data from the file: ")
-
-        write_event.clear()  # Pause the write operation
-        read_data()
-        write_event.set()  # Resume the write operation
+    try:
+        while True:
+            input("Press Enter to read data from the file: ")
+            write_event.clear()
+            read_data()
+            write_event.set()
+    except KeyboardInterrupt:
+        print("\nExiting the program...")
+        write_event.set()  # Ensure that the writer thread can terminate
+        writer_thread.join()  # Wait for the writer thread to finish
+        sys.exit(0)
 
 
 def read_data():

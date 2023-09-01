@@ -164,6 +164,24 @@ def sayGoodbye():
     parseAndPlay(response)
 
 
+def sayGoodbye():
+    keynotes = read_file("keynotes.txt")
+    functions = read_file("functions.txt")
+    load_dotenv()
+    openai.api_key = os.getenv('OPENAI_API_KEY')
+
+    prompt = "You are a vtuber with these characteristics and backstory: " + ' '.join(keynotes) + ". Tell your stream you have to go and thank them for watching the stream. No swearing or controversy. You have this set of abilities that are encoded as parameters: " + ' '.join(functions) + ". If you call a function, you will perform the action that it describes. Each function is separated from its description by a ':' and separated from other functions by a ';' After categorizing your response, simply call one function using its name and '()' and write it after a new line no punctuation."
+        
+
+    response = openai.ChatCompletion.create(
+    model="gpt-4",
+    messages= [{"role": "user", "content": prompt}]
+    )
+
+    parseAndPlay(response)
+
+
+
 def startStream(plans):
     keynotes = read_file("keynotes.txt")
     functions = read_file("functions.txt")
