@@ -29,10 +29,6 @@ def vectorize(sentences):
 
     model = SentenceTransformer('thenlper/gte-large')
     embeddings = model.encode(sentences)
-
-    # vectorizer = Vectorizer()
-    # vectorizer.run(sentences)
-    # vectors = vectorizer.vectors
     return embeddings
 
 def insert_memories(sentences, index):

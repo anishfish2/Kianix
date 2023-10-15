@@ -1,5 +1,5 @@
-from full_query import full_query
-from insert_memory import insert_memory
+# from full_query import full_query
+# from insert_memory import insert_memory
 import openai
 from dotenv import load_dotenv
 import os
@@ -27,10 +27,13 @@ def key_listener(stop_event):
             stop_event.set()  # Signal the loop to stop
             break
 
-def read_data():
-    with open("shared.txt", "r") as file:
-        data = file.read()
-        return data
+def read_chat(redis_server):
+    response = redis_server.lpop("twitch_chat").decode('utf-8')
+    return response
+
+def read_plans(redis_server):
+    response = redis_server.get("plans").decode('utf-8')
+    return response
 
 def get_current_action():
     with open("currentAction.txt", "r") as file:
@@ -39,7 +42,7 @@ def get_current_action():
     
     
 def parseAndPlay(response):
-
+    print("got here 4")
     total = response['choices'][0]['message']['content']
     response_text = total.split("\n")[0]
     function = total.split("\n")[-1].strip().lower()
@@ -55,14 +58,13 @@ def parseAndPlay(response):
 
 def questionChat(questions):
     #Maybe also add types of questions like, questions about self, questions about chat, questions about streamers, questions about news
-    #Need to acutally implement question saving
     keynotes = read_file("keynotes.txt")
     functions = read_file("functions.txt")
     currentAction = get_current_action()
     load_dotenv()
     openai.api_key = os.getenv('OPENAI_API_KEY')
 
-    prompt = "You are a vtuber with these characteristics and backstory: " + ' '.join(keynotes) + "You are currently: " + currentAction + ". You've already asked these questions: " + '?'.join(questions) + "Write an interesting question in first person you have not asked yet to your chat. No swearing or controversy. You have this set of abilities that are encoded as parameters: " + ' '.join(functions) + ". If you call a function, you will perform the action that it describes. Each function is separated from its description by a ':' and separated from other functions by a ';' After categorizing your response, simply call one function using its name and '()' and write it after a new line no punctuation."
+    prompt = "You are a vtuber with these characteristics and backstory: " + ' '.join(keynotes) + "You are currently: " + currentAction + ". You've already asked these questions: " + '? '.join(questions) + "Write an interesting question in first person you have not asked yet to your chat. No swearing or controversy. You have this set of abilities that are encoded as parameters: " + ' '.join(functions) + ". If you call a function, you will perform the action that it describes. Each function is separated from its description by a ':' and separated from other functions by a ';' After categorizing your response, simply call one function using its name and '()' and write it after a new line no punctuation."
         
 
     response = openai.ChatCompletion.create(
@@ -71,6 +73,7 @@ def questionChat(questions):
     )
 
     parseAndPlay(response)
+    return(response)
 
     
 
@@ -116,7 +119,7 @@ def generateJoke():
     load_dotenv()
     openai.api_key = os.getenv('OPENAI_API_KEY')
 
-    prompt = "Give a random joke. Say it outloud in its entirety. Don't ask why don't scientists trust atoms. Make sure to add the punchline after you say the joke. No swearing or controversy. Finish the joke. You have this set of abilities that are encoded as parameters: " + ' '.join(functions) + ". If you call a function, you will perform the action that it describes. Each function is separated from its description by a ':' and separated from other functions by a ';' After categorizing your response, simply call one function using its name and '()' and write it after a new line no punctuation. "
+    prompt = "Gie a random joke. Say it outloud in its entirety. Don't ask why don't scientists trust atoms. Make sure to add the punchline after you say the joke. No swearing or controversy. Finish the joke. You have this set of abilities that are encoded as parameters: " + ' '.join(functions) + ". If you call a function, you will perform the action that it describes. Each function is separated from its description by a ':' and separated from other functions by a ';' After categorizing your response, simply call one function using its name and '()' and write it after a new line no punctuation. "
         
 
     response = openai.ChatCompletion.create(
@@ -183,6 +186,7 @@ def sayGoodbye():
 
 
 def startStream(plans):
+    print("got here")
     keynotes = read_file("keynotes.txt")
     functions = read_file("functions.txt")
     load_dotenv()
@@ -190,12 +194,12 @@ def startStream(plans):
 
     prompt = "You are a vtuber with these characteristics and backstory: " + ' '.join(keynotes) + ". You are starting your stream. Welcome chatters to your stream. Talk about your plans for the day and the future: " + plans + " No swearing or controversy. You have this set of abilities that are encoded as parameters: " + ' '.join(functions) + ". If you call a function, you will perform the action that it describes. Each function is separated from its description by a ':' and separated from other functions by a ';' After categorizing your response, simply call one function using its name and '()' and write it after a new line no punctuation."
         
-
+    print("got here 2")
     response = openai.ChatCompletion.create(
     model="gpt-4",
     messages= [{"role": "user", "content": prompt}]
     )
     
-    
+    print("got here 3")
     parseAndPlay(response)
  

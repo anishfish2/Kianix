@@ -7,6 +7,8 @@ import win32api
 import win32con
 import pywintypes
 import threading
+
+
 def change_pitch(data, semitones):
     # Calculate the pitch shift factor
     pitch_shift = 2 ** (semitones / 12.0)
