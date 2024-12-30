@@ -8,6 +8,8 @@ import numpy as np
 from pathlib import Path
 from collections import deque
 import random, datetime, os, copy
+import redis
+
 
 # Gym is an OpenAI toolkit for RL
 import gym
@@ -437,13 +439,41 @@ episodes = 400
 for e in range(episodes):
 
     state = env.reset()
-
+    count = 0
     # Play the game!
     while True:
 
         # Run agent on the state
         action = mario.act(state)
-
+        count += 1
+        #Update Kianix current action
+        if count % 100 == 0:
+            redis_server = redis.StrictRedis(host='localhost', port=6379, db = 0)
+            if action == 0:
+                redis_server.set('current_action', 'Playing Super Mario Bros really fast so I can beat the game')
+            elif action == 1:
+                redis_server.set('current_action', 'Moving to the right and jumping in Super Mario Bros')
+            elif action == 2:
+                redis_server.set('current_action', 'Moving to the right and jumping in Super Mario Bros')
+            elif action == 3:
+                redis_server.set('current_action', 'Moving to the right and running in Super Mario Bros')
+            elif action == 4:
+                redis_server.set('current_action', 'Moving to the right, running, and jumping in Super Mario Bros')
+            elif action == 5:
+                redis_server.set('current_action', 'Jumping in Super Mario Bros')
+            elif action == 6:
+                redis_server.set('current_action', 'Moving to the left in Super Mario Bros')
+            elif action == 7:
+                redis_server.set('current_action', 'Moving to the left and jumping in Super Mario Bros')
+            elif action == 8:
+                redis_server.set('current_action', 'Moving to the left and running in Super Mario Bros')
+            elif action == 9:
+                redis_server.set('current_action', 'Moving to the left, running, and jumping in Super Mario Bros')
+            elif action == 10:
+                redis_server.set('current_action', 'Dropping up in Super Mario Bros')
+            elif action == 11:
+                redis_server.set('current_action', 'Moving up in Super Mario Bros')
+            
         # Agent performs action
         next_state, reward, done, trunc, info = env.step(action)
 
@@ -461,6 +491,7 @@ for e in range(episodes):
 
         # Check if end of game
         if done or info["flag_get"]:
+            redis_server.set('current_action', 'Died in Super Mario Bros')
             break
 
     logger.log_episode()
