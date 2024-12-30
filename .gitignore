@@ -9,3 +9,4 @@ try/
 __pycache__
 trial_sword/
 games/
+.conda/
