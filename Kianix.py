@@ -8,7 +8,6 @@ import random
 import redis
     
 
-# def kianix_awake(stop_event):
 def kianix_awake():
     askedQuestions = []
 
@@ -19,53 +18,65 @@ def kianix_awake():
     plans = read_plans(redis_server)
 
     startStream(plans)
+    
+    stream_on = True
 
-    try:
-        current_time = time.time()
-        elapsed_time = current_time - time_awoken
+    while stream_on:
+        try:
+            print('Waking up')
+            current_time = time.time()
+            elapsed_time = current_time - time_awoken
 
-        nothingUrgent = True
-        
-        if nothingUrgent:
-            #If new chat
-            currChat = read_chat(redis_server)
-            choice = random.randint(0, 10)
-            
-            if choice <= 9 and currChat != None:
-                print("User said: " + currChat)
-                questionFromChat(currChat)
-            else:
-                decision = random.randint(0, 4)
-                if decision == 0:
-                    print("questioning chat")
-                    askedQuestions += questionChat(askedQuestions)
+            nothingUrgent = True
+            prevChat = None
+            print("got here")
+            if nothingUrgent:
+                print("GOt here 1")
+                #If new chat
+                currChat = read_chat(redis_server)
+                print("yo")
+                choice = random.randint(0, 10)
+                # time.sleep(random(1, 5))
+                print("GOt here 2")
+                if choice <= 9 and currChat != "" and currChat != " " and currChat != None and currChat != prevChat:
+                    print("User said: " + currChat + ". I am responding!")
+                    questionFromChat(currChat)
+                else:
+                    decision = random.randint(0, 6)
+                    if decision == 0:
+                        print("Questioning chat")
+                        askedQuestions += questionChat(askedQuestions)
+                        
+                    elif decision == 3:
+                        print("Making conversation")
+                        generateConversation()
                     
-                elif decision == 3:
-                    print("making conversation")
-                    generateConversation()
-                
-                elif decision == 4:
-                    print("generating joke")
-                    generateJoke()
+                    elif decision == 4:
+                        print("Generating a joke")
+                        generateJoke()
 
-                elif decision == 5:
-                    print("talking to myself")
-                    generateSelfTalk()
+                    elif decision == 5:
+                        print("Talking to myself")
+                        generateSelfTalk()
 
-                elif decision == 6:
-                    emote()
-    except:
-        print("Some Error Happened -> Restarting")
-        #continue
+                    elif decision == 6:
+                        print("Commenting on the game")
+                        comment_game()
+                print("ending action cycle")
+                prevChat = currChat
+                print("GOt here 3")
+        except:
+            print("Error in kianix_awake -> Restarting")
 
 #Kianix must be running in Unity
 def main():
     awake = True
-    # while awake:
-    try:
-        kianix_awake()
-    except:
-        print("something went wrong, restarting")
+    while awake:
+        try:
+            kianix_awake()
+        except:
+            sayGoodbye()
+            break
 
 if __name__ == '__main__':
     main()

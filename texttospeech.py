@@ -54,16 +54,13 @@ def display_text(text, display_time):
 def playTTS(input_text, rate):
     load_dotenv()
     set_api_key(os.getenv('ELEVENLABS_API_KEY'))
-
     display_time = int(1/2 * len(input_text.split(" ")) * 1000)
     display_thread = threading.Thread(target=display_text, args=(input_text, display_time))
     display_thread.start()
-
 
     audio_stream = generate(
         text=input_text,
         voice="Kianix",
         model="eleven_monolingual_v1",
         stream=True)
-    
     stream(audio_stream)
