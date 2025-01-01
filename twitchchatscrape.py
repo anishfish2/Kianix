@@ -50,24 +50,24 @@ def update_file(channel, redis_server):
                     sock.send("PONG\n".encode('utf-8'))
                 
                 elif len(resp) > 0:
-                    redis_server.rpush('twitch_chat', resp)
+                    # redis_server.rpush('twitch_chat', resp)
                     continue
             except:
                 continue
 
 def write_data():
-    redis_server = redis.StrictRedis(host='localhost', port=6379, db=0)
+    # redis_server = redis.StrictRedis(host='localhost', port=6379, db=0)
 
    # Key
     key = 'twitch_chat'
 
     # Check if the key exists and is a list
-    if not (redis_server.exists(key) and redis_server.type(key) == b'list'):
-        redis_server.delete(key) 
-        redis_server.lpush(key, '')
+    # if not (redis_server.exists(key) and redis_server.type(key) == b'list'):
+    #     redis_server.delete(key) 
+    #     redis_server.lpush(key, '')
 
     while True:
-        update_file("anishfish", redis_server)
+        update_file("anishfish", None)
 
 
 def main():
