@@ -2,6 +2,14 @@
 
 Welcome to the **Kianix** project repository! Kianix is an AI-based Virtual YouTuber (Vtuber) designed to stream on Twitch. The project's primary goal is to create a versatile Vtuber capable of playing different games, singing, and incorporating various functionalities over time during Twitch streams. Additionally, Kianix utilizes PineconeDB to implement external memory for enhanced interactivity.
 
+
+# Setup -> 
+
+1. Create firebase storage with structure Project 'Kianix -> Collection 'streamers' -> Document 'Kianix' -> Fields {keynotes, functions, plans, etc...}
+2. Setup Google ADC : https://cloud.google.com/docs/authentication/set-up-adc-local-dev-environment#local-user-cred
+3. Install Requirements.txt
+4. Run Kianix.py
+
 ## Project Structure
 
 Here's an overview of the project's structure:

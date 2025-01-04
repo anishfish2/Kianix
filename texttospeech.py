@@ -1,14 +1,14 @@
 import soundfile as sf
 import numpy as np
 import sounddevice as sd
-import pyttsx3
+# import pyttsx3
 import tkinter as tk
 import win32api
 import win32con
 import pywintypes
 import threading
 from elevenlabs import set_api_key, generate, stream
-from dotenv import load_dotenv
+# from dotenv import load_dotenv
 import os 
 
 def display_text(text, display_time):
