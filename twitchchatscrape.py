@@ -1,77 +1,75 @@
-import threading
-import os
-from dotenv import load_dotenv
 import socket
-import logging
-from emoji import demojize
-from datetime import datetime
+import requests
+import os
+import firebase_admin
+from firebase_admin import firestore
 import time
-import subprocess
-import sys
-import redis
+import datetime
 
-def restart_script():
-    script_args = [sys.executable] + sys.argv
-    subprocess.Popen(script_args)
-    sys.exit()
+client_id = os.getenv('TWITCH_CLIENT_ID') 
+access_token = os.getenv('TWITCH_OAUTH')
+channel_name = 'anishfish'
 
 
-def update_file(channel, redis_server):
-        load_dotenv()
-        oauth = os.getenv('TWITCH_OAUTH')
-        server = 'irc.chat.twitch.tv'
-        port = 6667
-        nickname = 'anishfish'
-        token = oauth
-        channel = "#" + channel
-        sock = socket.socket()
-        sock.connect((server, port))
-        sock.send(f"PASS {token}\n".encode('utf-8'))
-        sock.send(f"NICK {nickname}\n".encode('utf-8'))
-        sock.send(f"JOIN {channel}\n".encode('utf-8'))
-        while True:
-            try:
+print(client_id, access_token)
+server = 'irc.chat.twitch.tv'
+port = 6667
 
-                resp = sock.recv(2048).decode('utf-8')
-                if "ING: tmi.twitch.tv" in resp:
-                    restart_script()
-                username = ''.join(resp.split(" ")[0].split("!")[0].split("."))[1:] 
-                message = resp.split(":")[-1]
-                if message == "" or username == "tmitwitchtv" or "End of /NAMES list" in message:
-                    continue
-                if message.strip() == "tmi.twitch.tv":
-                    restart_script()
+oauth_token = f'oauth:{access_token}'
 
-                
-                resp = username +": " + message
-                print(resp)
-                print("_____________________")
-                if resp.startswith('PING'):
-                    sock.send("PONG\n".encode('utf-8'))
-                
-                elif len(resp) > 0:
-                    redis_server.rpush('twitch_chat', resp)
-                    continue
-            except:
-                continue
+def connect_to_irc():
+    print("Connecting to Twitch IRC server...")
+    irc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    irc.connect((server, port))
+    print(f"Connected to {server} on port {port}.")
+    
+    return irc
 
-def write_data():
-    redis_server = redis.StrictRedis(host='localhost', port=6379, db=0)
+def join_channel(irc):
+    irc.send(f'PASS {oauth_token}\r\n'.encode('utf-8'))
+    irc.send(f'NICK justinfan123\r\n'.encode('utf-8')) # NEEDS to be justinfan123, as my account doesn't register as linked to the Auth token
+    irc.send(f'JOIN #{channel_name}\r\n'.encode('utf-8'))  
 
-   # Key
-    key = 'twitch_chat'
-
-    # Check if the key exists and is a list
-    if not (redis_server.exists(key) and redis_server.type(key) == b'list'):
-        redis_server.delete(key) 
-        redis_server.lpush(key, '')
-
+def read_chat(irc):
+    app = firebase_admin.initialize_app(options={'projectId' :'kianix'})
+    db = firestore.client(app)
     while True:
-        update_file("anishfish", redis_server)
+        response = irc.recv(2048).decode('utf-8')
+        if response.startswith('PING'):
+            irc.send('PONG :' + response.split()[1] + '\r\n'.encode('utf-8')) 
+            print("Responding to PING.")
+        elif 'PRIVMSG' in response:
+            user = response.split('!')[0][1:]  
+            message = response.split('PRIVMSG')[1].split(':', 1)[1]  
+            chat = db.collection("streamers").document("Kianix")
+            
+            doc = chat.get()
+            if doc.exists:
+                data = doc.to_dict()
+                chat_log = data.get('unread_chat_log', [])
+                
+                new_chat_entry = {
+                    'message': message,
+                    'user': user,
+                    'timestamp': datetime.datetime.utcnow()  
+                }
+                
+                chat_log.append(new_chat_entry)
+                
+                chat.update({
+                    'unread_chat_log': chat_log
+                })
+
+            # print(f"{user}: {message}")
 
 
 def main():
-    write_data()
-    
+    try:
+        irc = connect_to_irc()
+        join_channel(irc)
+        read_chat(irc)
+    except Exception as e:
+        print(f"An error occurred: {e}")
+
 if __name__ == "__main__":
     main()
