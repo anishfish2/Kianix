@@ -27,7 +27,7 @@ def connect_to_irc():
 
 def join_channel(irc):
     irc.send(f'PASS {oauth_token}\r\n'.encode('utf-8'))
-    irc.send(f'NICK anishfish\r\n'.encode('utf-8')) 
+    irc.send(f'NICK justinfan123\r\n'.encode('utf-8')) # NEEDS to be justinfan123, as my account doesn't register as linked to the Auth token
     irc.send(f'JOIN #{channel_name}\r\n'.encode('utf-8'))  
 
 def read_chat(irc):
@@ -46,7 +46,7 @@ def read_chat(irc):
             doc = chat.get()
             if doc.exists:
                 data = doc.to_dict()
-                chat_log = data.get('chat_log', [])
+                chat_log = data.get('unread_chat_log', [])
                 
                 new_chat_entry = {
                     'message': message,
@@ -57,10 +57,10 @@ def read_chat(irc):
                 chat_log.append(new_chat_entry)
                 
                 chat.update({
-                    'chat_log': chat_log
+                    'unread_chat_log': chat_log
                 })
 
-            print(f"{user}: {message}")
+            # print(f"{user}: {message}")
 
 
 def main():
