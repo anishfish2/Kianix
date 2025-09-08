@@ -2,6 +2,8 @@
 
 Welcome to the **Kianix** project repository! Kianix is an AI-based Virtual YouTuber (Vtuber) designed to stream on Twitch. The project's primary goal is to create a versatile Vtuber capable of playing different games, singing, and incorporating various functionalities over time during Twitch streams. Additionally, Kianix utilizes PineconeDB to implement external memory for enhanced interactivity.
 
+Streamed previously @ https://www.twitch.tv/anishfish
+
 
 # Setup -> 
 
